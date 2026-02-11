@@ -1,0 +1,2859 @@
+
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Fund Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #2d3436;
+            --primary-color: #0984e3;
+            --secondary-color: #636e72;
+            --border-color: #dfe6e9;
+            --accent-color: #00b894;
+            --header-bg: #2d3436;
+            --header-text: #dfe6e9;
+            --shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --card-bg: #2d2d2d;
+            --text-color: #f5f5f5;
+            --primary-color: #74b9ff;
+            --border-color: #444;
+            --shadow: 0 10px 15px -3px rgba(0,0,0,0.5);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .container { max-width: 1600px; margin: 0 auto; }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            background: var(--header-bg);
+            color: var(--header-text);
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+        }
+
+        .control-group { display: flex; flex-direction: column; }
+        label { font-weight: 600; margin-bottom: 8px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        select, input {
+            padding: 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--card-bg);
+            color: var(--text-color);
+            outline: none;
+        }
+        select:focus, input:focus { border-color: var(--primary-color); }
+
+        .btn-group { display: flex; gap: 10px; margin-top: auto; }
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+        button:active { transform: scale(0.98); }
+
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-secondary { background-color: var(--secondary-color); color: white; }
+        .btn-success { background-color: var(--accent-color); color: white; }
+
+        .multi-select {
+            height: 120px;
+            overflow-y: auto;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px;
+            background: var(--card-bg);
+        }
+        .multi-select label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+            text-transform: none;
+            padding: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        .multi-select input { margin-right: 10px; padding: 0; }
+        .multi-select label:hover { background: rgba(0,0,0,0.05); }
+
+        .table-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: auto;
+            max-height: 700px;
+            position: relative;
+        }
+
+        table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        th, td {
+            padding: 15px 20px;
+            text-align: right;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        thead th {
+            position: sticky;
+            top: 0;
+            background: var(--header-bg);
+            color: white !important; /* Ensure white text on dark header */
+            z-index: 10;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Sticky Columns */
+        th:first-child, td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 11;
+            text-align: left;
+            background: var(--card-bg);
+            border-right: 3px solid var(--border-color);
+        }
+        thead th:first-child { z-index: 12; background: var(--header-bg); color: white; }
+
+        /* Total Amount Sticky Column Styling */
+        th:nth-child(2), td:nth-child(2) {
+            position: sticky;
+            left: 140px; 
+            z-index: 11;
+            background: #eef2f7; /* Slightly darker to distinguish from white bg */
+            color: #1a1a1a;    /* Forced high contrast for foreground */
+            font-weight: 700;
+            border-right: 2px solid var(--border-color);
+        }
+        
+        /* Specific Fix for Dark Mode Sticky Column */
+        [data-theme="dark"] th:nth-child(2), [data-theme="dark"] td:nth-child(2) { 
+            background: #2c3e50; 
+            color: #ffffff;
+        }
+        
+        /* Sticky Header for 2nd column stays dark like rest of header */
+        thead th:nth-child(2) { 
+            z-index: 12; 
+            background: var(--header-bg); 
+            color: white !important; 
+        }
+
+        tfoot {
+            position: sticky;
+            bottom: 0;
+            background: var(--header-bg);
+            color: white;
+            z-index: 10;
+        }
+        tfoot td { 
+            font-weight: 800; 
+            border-top: 2px solid var(--border-color); 
+            background: var(--header-bg);
+        }
+
+        .summary-badge {
+            background: var(--accent-color);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .empty-state { padding: 60px; text-align: center; color: var(--secondary-color); font-size: 1.2rem; }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #aaa; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1 style="margin:0; font-size: 1.8rem;">Family Fund Dashboard</h1>
+            <p style="margin:5px 0 0; opacity: 0.9">Dec-2025 to Dec-2028 | <span id="activeRange">...</span></p>
+        </div>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <button onclick="toggleTheme()" class="btn-secondary" id="themeBtn">🌙 Dark Mode</button>
+        </div>
+    </header>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>Years</label>
+            <div id="yearSelect" class="multi-select"></div>
+        </div>
+
+        <div class="control-group">
+            <label>Months</label>
+            <div id="monthSelect" class="multi-select"></div>
+        </div>
+
+        <div class="control-group">
+            <label>Member Search</label>
+            <input type="text" id="userSearch" placeholder="Search name..." oninput="filterUserList()">
+            <div id="userSelect" class="multi-select" style="margin-top:5px; height: 80px;"></div>
+            <div style="font-size:0.75rem; margin-top:5px; display:flex; gap:10px;">
+                <a href="#" onclick="selectAll('userSelect', true); return false;" style="color:var(--primary-color)">All</a>
+                <a href="#" onclick="selectAll('userSelect', false); return false;" style="color:var(--primary-color)">None</a>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Custom Date Range</label>
+            <div style="display:flex; gap:10px; align-items: center;">
+                <input type="date" id="startDate">
+                <span>to</span>
+                <input type="date" id="endDate">
+            </div>
+            <small style="margin-top:8px; color:var(--secondary-color)">Overrides Year/Month selection if set.</small>
+        </div>
+
+        <div class="control-group">
+            <div class="btn-group">
+                <button onclick="resetFilters()" class="btn-secondary" style="flex:1">Reset</button>
+                <button onclick="exportCSV()" class="btn-success" style="flex:1">Export CSV</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table id="mainTable">
+            <thead><tr id="tableHead"></tr></thead>
+            <tbody id="tableBody"></tbody>
+            <tfoot id="tableFoot"></tfoot>
+        </table>
+        <div id="emptyMsg" class="empty-state" style="display:none;">No data matches the current filters.</div>
+    </div>
+</div>
+
+<script>
+    // EMBEDDED DATA
+    const embeddedData = [
+  {
+    "paymentdate": "15-Dec-2025",
+    "membername": "Balamugan Swathi",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "15-Dec-2025",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "15-Dec-2025",
+    "membername": "Muthukumar Raman",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "15-Dec-2025",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "15-Dec-2025",
+    "membername": "Maheswaran",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "15-Dec-2025",
+    "membername": "p-126",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "15-Dec-2025",
+    "membername": "p-145",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "15-Dec-2025",
+    "membername": "p-214",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "15-Dec-2025",
+    "membername": "p-221",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "15-Dec-2025",
+    "membername": "Ashok-1",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "15-Dec-2025",
+    "membername": "Ashok-2",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "15-Dec-2025",
+    "membername": "p-246",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "15-Dec-2025",
+    "membername": "p-374",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "31-Jan-2026",
+    "membername": "Balamugan Swathi",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "31-Jan-2026",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "31-Jan-2026",
+    "membername": "Muthukumar Raman",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "31-Jan-2026",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "31-Jan-2026",
+    "membername": "Maheswaran",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "31-Jan-2026",
+    "membername": "p-126",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "31-Jan-2026",
+    "membername": "p-145",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "31-Jan-2026",
+    "membername": "p-214",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "31-Jan-2026",
+    "membername": "p-221",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "31-Jan-2026",
+    "membername": "Ashok-1",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "31-Jan-2026",
+    "membername": "Ashok-2",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "31-Jan-2026",
+    "membername": "p-246",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "31-Jan-2026",
+    "membername": "p-374",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "28-Feb-2026",
+    "membername": "Balamugan Swathi",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "28-Feb-2026",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "28-Feb-2026",
+    "membername": "Muthukumar Raman",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "28-Feb-2026",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "28-Feb-2026",
+    "membername": "Maheswaran",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "28-Feb-2026",
+    "membername": "p-126",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "28-Feb-2026",
+    "membername": "p-145",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "28-Feb-2026",
+    "membername": "p-214",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "28-Feb-2026",
+    "membername": "p-221",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "28-Feb-2026",
+    "membername": "Ashok-1",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "28-Feb-2026",
+    "membername": "Ashok-2",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "28-Feb-2026",
+    "membername": "p-246",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "28-Feb-2026",
+    "membername": "p-374",
+    "paymentamount": 510
+  },
+  {
+    "paymentdate": "31-Mar-2026",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2026",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2026",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2026",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2026",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2026",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2026",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2026",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2026",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2026",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2026",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2026",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2026",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2026",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2026",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2026",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2026",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2026",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2026",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2026",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2026",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2026",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2026",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2026",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2026",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2026",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2026",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2026",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2026",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2026",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2026",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2026",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2026",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2026",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2026",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2026",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2026",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2026",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2026",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2026",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2026",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2026",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2026",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2026",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2026",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2026",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2026",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2026",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2026",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2026",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2026",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2026",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2026",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2026",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2026",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2026",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2026",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2026",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2026",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2026",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2026",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2026",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2026",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2026",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2026",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2026",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2026",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2026",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2026",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2026",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2026",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2026",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2026",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2026",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2026",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2026",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2026",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2026",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2026",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2026",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2026",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2026",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2026",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2026",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2026",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2026",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2026",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2026",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2026",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2026",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2026",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2026",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2026",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2026",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2026",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2026",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2026",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2026",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2026",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2026",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2026",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2026",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2026",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2026",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2026",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2026",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2026",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2026",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2026",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2026",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2026",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2026",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2026",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2026",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2026",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2026",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2026",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2026",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2026",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2026",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2026",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2026",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2026",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2026",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2026",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2026",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2026",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2026",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2026",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2026",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2027",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2027",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2027",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2027",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2027",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2027",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2027",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2027",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2027",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2027",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2027",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2027",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2027",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "28-Feb-2027",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "28-Feb-2027",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "28-Feb-2027",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "28-Feb-2027",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "28-Feb-2027",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "28-Feb-2027",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "28-Feb-2027",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "28-Feb-2027",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "28-Feb-2027",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "28-Feb-2027",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "28-Feb-2027",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "28-Feb-2027",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "28-Feb-2027",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2027",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2027",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2027",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2027",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2027",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2027",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2027",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2027",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2027",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2027",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2027",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2027",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2027",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2027",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2027",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2027",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2027",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2027",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2027",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2027",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2027",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2027",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2027",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2027",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2027",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2027",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2027",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2027",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2027",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2027",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2027",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2027",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2027",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2027",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2027",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2027",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2027",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2027",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2027",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2027",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2027",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2027",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2027",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2027",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2027",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2027",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2027",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2027",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2027",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2027",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2027",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2027",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2027",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2027",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2027",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2027",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2027",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2027",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2027",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2027",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2027",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2027",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2027",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2027",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2027",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2027",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2027",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2027",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2027",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2027",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2027",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2027",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2027",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2027",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2027",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2027",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2027",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2027",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2027",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2027",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2027",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2027",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2027",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2027",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2027",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2027",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2027",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2027",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2027",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2027",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2027",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2027",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2027",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2027",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2027",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2027",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2027",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2027",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2027",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2027",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2027",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2027",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2027",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2027",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2027",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2027",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2027",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2027",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2027",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2027",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2027",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2027",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2027",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2027",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2027",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2027",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2027",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2027",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2027",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2027",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2027",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2027",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2027",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2027",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2027",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2027",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2027",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2027",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2027",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Dec-2027",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2028",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2028",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2028",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2028",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2028",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2028",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2028",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2028",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2028",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2028",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2028",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2028",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jan-2028",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "29-Feb-2028",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "29-Feb-2028",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "29-Feb-2028",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "29-Feb-2028",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "29-Feb-2028",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "29-Feb-2028",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "29-Feb-2028",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "29-Feb-2028",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "29-Feb-2028",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "29-Feb-2028",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "29-Feb-2028",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "29-Feb-2028",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "29-Feb-2028",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2028",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2028",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2028",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2028",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2028",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2028",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2028",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2028",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2028",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2028",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2028",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2028",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Mar-2028",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2028",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2028",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2028",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2028",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2028",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2028",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2028",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2028",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2028",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2028",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2028",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2028",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Apr-2028",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2028",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2028",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2028",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2028",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2028",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2028",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2028",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2028",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2028",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2028",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2028",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2028",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-May-2028",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2028",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2028",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2028",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2028",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2028",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2028",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2028",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2028",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2028",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2028",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2028",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2028",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Jun-2028",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2028",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2028",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2028",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2028",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2028",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2028",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2028",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2028",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2028",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2028",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2028",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2028",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Jul-2028",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2028",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2028",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2028",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2028",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2028",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2028",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2028",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2028",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2028",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2028",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2028",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2028",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Aug-2028",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2028",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2028",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2028",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2028",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2028",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2028",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2028",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2028",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2028",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2028",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2028",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2028",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Sep-2028",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2028",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2028",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2028",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2028",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2028",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2028",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2028",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2028",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2028",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2028",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2028",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2028",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "31-Oct-2028",
+    "membername": "p-374",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2028",
+    "membername": "Balamugan Swathi",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2028",
+    "membername": "Balamurugan Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2028",
+    "membername": "Muthukumar Raman",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2028",
+    "membername": "Sivakumar Trichy",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2028",
+    "membername": "Maheswaran",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2028",
+    "membername": "p-126",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2028",
+    "membername": "p-145",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2028",
+    "membername": "p-214",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2028",
+    "membername": "p-221",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2028",
+    "membername": "Ashok-1",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2028",
+    "membername": "Ashok-2",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2028",
+    "membername": "p-246",
+    "paymentamount": ""
+  },
+  {
+    "paymentdate": "30-Nov-2028",
+    "membername": "p-374",
+    "paymentamount": ""
+  }
+];
+
+    // Minimal Date Helper
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    
+    function parseDate(str) {
+        if (!str) return null;
+        const parts = str.split('-');
+        if (parts.length !== 3) return new Date(str);
+        
+        if (isNaN(parts[1])) { // DD-MMM-YYYY
+            const d = parseInt(parts[0]);
+            const m = monthNames.indexOf(parts[1]);
+            const y = parseInt(parts[2]);
+            return new Date(y, m, d);
+        }
+        return new Date(str); // YYYY-MM-DD
+    }
+
+    function formatDate(date, format) {
+        if (!date || isNaN(date.getTime())) return "";
+        const d = date.getDate();
+        const m = date.getMonth();
+        const y = date.getFullYear();
+        if (format === 'MMM-YY') return `${monthNames[m]}-${String(y).slice(-2)}`;
+        if (format === 'YYYY-MM') return `${y}-${String(m + 1).padStart(2, '0')}`;
+        if (format === 'YYYY-MM-DD') return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        return date.toLocaleDateString();
+    }
+
+    let rawData = [];
+    let filteredData = [];
+    let pivotData = { headers: [], rows: [], totals: [] };
+    
+    // NEW DEFAULT: Sort by Member Name (column 0), Ascending (desc: false)
+    let currentSort = { col: 0, desc: false }; 
+
+    function init() {
+        rawData = embeddedData.map(r => {
+            const d = parseDate(r.paymentdate);
+            return {
+                user: (r.membername || "Unknown").trim(),
+                amount: parseFloat(r.paymentamount) || 0,
+                date: d,
+                dateStr: formatDate(d, 'YYYY-MM-DD'),
+                monthKey: formatDate(d, 'MMM-YY'),
+                monthSort: formatDate(d, 'YYYY-MM')
+            };
+        }).filter(r => r.date && !isNaN(r.date.getTime()));
+
+        populateFilters();
+        setDefaultRange();
+        applyFilters();
+    }
+
+    function populateFilters() {
+        const years = [...new Set(rawData.map(r => r.date.getFullYear()))].sort();
+        const users = [...new Set(rawData.map(r => r.user))].sort();
+
+        document.getElementById('yearSelect').innerHTML = years.map(y => `
+            <label><input type="checkbox" value="${y}" checked onchange="applyFilters()"> ${y}</label>
+        `).join('');
+
+        document.getElementById('monthSelect').innerHTML = monthNames.map((m, i) => `
+            <label><input type="checkbox" value="${i}" checked onchange="applyFilters()"> ${m}</label>
+        `).join('');
+
+        renderUserList(users);
+    }
+
+    function renderUserList(users) {
+        document.getElementById('userSelect').innerHTML = users.map(u => `
+            <label class="user-item"><input type="checkbox" value="${u}" checked onchange="applyFilters()"> ${u}</label>
+        `).join('');
+    }
+
+    function filterUserList() {
+        const query = document.getElementById('userSearch').value.toLowerCase();
+        document.querySelectorAll('.user-item').forEach(el => {
+            const name = el.innerText.toLowerCase();
+            el.style.display = name.includes(query) ? 'flex' : 'none';
+        });
+    }
+
+    function setDefaultRange() {
+        const now = new Date();
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        document.getElementById('endDate').value = formatDate(endOfMonth, 'YYYY-MM-DD');
+    }
+
+    function getSelected(id) {
+        return [...document.getElementById(id).querySelectorAll('input:checked')].map(i => i.value);
+    }
+
+    function selectAll(id, state) {
+        document.getElementById(id).querySelectorAll('input').forEach(i => i.checked = state);
+        applyFilters();
+    }
+
+    function applyFilters() {
+        const selYears = getSelected('yearSelect').map(Number);
+        const selMonths = getSelected('monthSelect').map(Number);
+        const selUsers = getSelected('userSelect');
+        const start = document.getElementById('startDate').value;
+        const end = document.getElementById('endDate').value;
+
+        filteredData = rawData.filter(r => {
+            const matchUser = selUsers.includes(r.user);
+            let matchDate = true;
+            
+            if (start || end) {
+                if (start) matchDate = matchDate && r.dateStr >= start;
+                if (end) matchDate = matchDate && r.dateStr <= end;
+            } else {
+                matchDate = selYears.includes(r.date.getFullYear()) && selMonths.includes(r.date.getMonth());
+            }
+
+            return matchUser && matchDate;
+        });
+
+        const rangeText = document.getElementById('activeRange');
+        if (filteredData.length > 0) {
+            const dates = filteredData.map(r => r.date).sort((a,b) => a-b);
+            rangeText.innerText = `${formatDate(dates[0], 'MMM-YY')} to ${formatDate(dates[dates.length-1], 'MMM-YY')}`;
+        } else {
+            rangeText.innerText = "No data";
+        }
+
+        processPivot();
+    }
+
+    function processPivot() {
+        if (filteredData.length === 0) {
+            document.getElementById('emptyMsg').style.display = 'block';
+            document.getElementById('mainTable').style.display = 'none';
+            return;
+        }
+        document.getElementById('emptyMsg').style.display = 'none';
+        document.getElementById('mainTable').style.display = 'table';
+
+        const monthMap = {};
+        filteredData.forEach(r => { monthMap[r.monthSort] = r.monthKey; });
+        const sortedMonthKeys = Object.keys(monthMap).sort();
+        const displayMonths = sortedMonthKeys.map(k => monthMap[k]);
+
+        const users = [...new Set(filteredData.map(r => r.user))];
+        const userMatrix = {};
+        users.forEach(u => {
+            userMatrix[u] = {};
+            displayMonths.forEach(m => userMatrix[u][m] = 0);
+        });
+
+        filteredData.forEach(r => {
+            userMatrix[r.user][r.monthKey] += r.amount;
+        });
+
+        let rows = users.map(u => {
+            let total = 0;
+            const monthCells = displayMonths.map(m => {
+                total += userMatrix[u][m];
+                return userMatrix[u][m];
+            });
+            return { name: u, total: total, months: monthCells };
+        });
+
+        const col = currentSort.col;
+        const desc = currentSort.desc;
+        rows.sort((a, b) => {
+            let va, vb;
+            if (col === 0) { va = a.name; vb = b.name; }
+            else if (col === 1) { va = a.total; vb = b.total; }
+            else { va = a.months[col-2]; vb = b.months[col-2]; }
+            
+            if (va < vb) return desc ? 1 : -1;
+            if (va > vb) return desc ? -1 : 1;
+            return 0;
+        });
+
+        const grandTotals = displayMonths.map((m, i) => rows.reduce((s, r) => s + r.months[i], 0));
+        const grandTotalSum = rows.reduce((s, r) => s + r.total, 0);
+
+        pivotData = {
+            headers: ["Member Name", "Total Amount", ...displayMonths],
+            rows: rows,
+            totals: ["GRAND TOTAL", grandTotalSum, ...grandTotals]
+        };
+
+        renderTable();
+    }
+
+    function renderTable() {
+        const head = document.getElementById('tableHead');
+        const body = document.getElementById('tableBody');
+        const foot = document.getElementById('tableFoot');
+
+        head.innerHTML = pivotData.headers.map((h, i) => `
+            <th onclick="changeSort(${i})">${h} ${currentSort.col === i ? (currentSort.desc ? '▼' : '▲') : ''}</th>
+        `).join('');
+
+        body.innerHTML = pivotData.rows.map(r => `
+            <tr>
+                <td>${r.name}</td>
+                <td>₹ ${r.total.toLocaleString('en-IN')}</td>
+                ${r.months.map(m => `<td>₹ ${m.toLocaleString('en-IN')}</td>`).join('')}
+            </tr>
+        `).join('');
+
+        foot.innerHTML = `<tr>${pivotData.totals.map((t, i) => `<td>${i === 0 ? t : '₹ ' + t.toLocaleString('en-IN')}</td>`).join('')}</tr>`;
+    }
+
+    function changeSort(idx) {
+        if (currentSort.col === idx) currentSort.desc = !currentSort.desc;
+        else { currentSort.col = idx; currentSort.desc = (idx === 0 ? false : true); }
+        processPivot();
+    }
+
+    function resetFilters() {
+        document.getElementById('startDate').value = '';
+        document.getElementById('userSearch').value = '';
+        setDefaultRange();
+        selectAll('yearSelect', true);
+        selectAll('monthSelect', true);
+        selectAll('userSelect', true);
+        filterUserList();
+    }
+
+    function toggleTheme() {
+        const theme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        document.getElementById('themeBtn').innerText = theme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
+    }
+
+    function exportCSV() {
+        let csv = pivotData.headers.join(',') + '\n';
+        pivotData.rows.forEach(r => {
+            csv += [r.name, r.total, ...r.months].join(',') + '\n';
+        });
+        csv += pivotData.totals.join(',') + '\n';
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'payment-dashboard-export.csv'; a.click();
+    }
+
+    init();
+</script>
+</body>
+</html>
